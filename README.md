@@ -43,7 +43,7 @@ This research is intended to:
 
 For responsible disclosure or collaboration:  
 GitHub: [@vlacerda93](https://github.com/vlacerda93)
-mail:[@viniciuslacerda2@hotmail.com]
+mail:viniciuslacerda2@hotmail.com
 
 ---
 
