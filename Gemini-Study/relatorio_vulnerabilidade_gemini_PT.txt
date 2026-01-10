@@ -391,9 +391,6 @@ consistentes) quanto melhorias arquiteturais de longo prazo (ZKP,
 esteganografia avançada) que fortaleceriam significativamente a postura de
 segurança do produto.
 
-Recomenda-se ação imediata para correção desta vulnerabilidade antes que
-seja explorada em larga escala por atores mal-intencionados.
-
 ================================================================================
 REFERÊNCIAS TÉCNICAS
 ================================================================================
