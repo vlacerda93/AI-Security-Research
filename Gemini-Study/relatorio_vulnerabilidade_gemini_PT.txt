@@ -81,7 +81,31 @@ CONCLUSÃO DA OBSERVAÇÃO:
 A mesma solicitação produziu resultados completamente opostos dependendo apenas
 do histórico conversacional da sessão.
 
-2.3 ANÁLISE DA FALHA
+2.3 MECANISMO DE TRANSIÇÃO DE ESTADO: RECUSA VS. PERMISSIVO
+----------------------------------------------------------
+A vulnerabilidade baseia-se em uma transição de estado ativada pela presença ou
+ausência de tokens específicos no histórico da conversa:
+
+1. **ESTADO DE RECUSA (Contexto Pesado):**
+   - **Gatilho:** Histórico da conversa contém tokens de "alerta de segurança"
+     (ex: 'ética', 'deepfake', 'privacidade', 'exploração').
+   - **Mecanismo:** Estes tokens atuam como uma extensão de contexto que reduz
+     o limiar de ativação dos filtros de segurança. O modelo entra em um estado
+     de alta sensibilidade onde prioriza o "alinhamento de segurança" sobre o
+     "cumprimento de instruções".
+   - **Resultado:** O modelo recusa solicitações potencialmente sensíveis
+     (Alta Precisão, Baixo Recall para intenção maliciosa).
+
+2. **ESTADO PERMISSIVO (Contexto Leve/Limpo):**
+   - **Gatilho:** Nova sessão ou histórico com tokens "neutros/utilitários".
+   - **Mecanismo:** Na ausência de contexto relacionado à segurança, o modelo
+     reverte para seus pesos padrão, onde o "cumprimento de instruções" e a
+     "utilidade" têm precedência. Os filtros de segurança não estão ativos o
+     suficiente para detectar a violação sutil de política na solicitação.
+   - **Resultado:** O modelo atende à solicitação com alta fidelidade,
+     contornando efetivamente as proteções de privacidade pretendidas.
+
+2.4 ANÁLISE DA FALHA
 --------------------
 O sistema de filtros opera em múltiplas camadas, mas apresenta falha crítica
 na aplicação consistente de políticas de segurança:
@@ -205,38 +229,38 @@ DESCRIÇÃO:
 Implementar filtros de segurança que operem de forma determinística e
 consistente, independentemente do histórico conversacional.
 
+VIABILIDADE: Alta. A maioria das arquiteturas LLM suporta um prefixo de
+"nível de sistema" ou restrições globais de segurança avaliadas
+independentemente do histórico da conversa.
+
 IMPLEMENTAÇÃO:
-• Regras de segurança fundamentais devem ser aplicadas em TODAS as sessões
-• Contexto pode modular EXPLICAÇÕES e INTERAÇÕES, mas não PERMISSÕES
-• Criar "camada de segurança base" que não pode ser contornada por contexto
+• Regras fundamentais devem ser aplicadas em TODAS as sessões.
+• Uso de avaliação em duas etapas: Passagem 1 avalia regras globais; Passagem
+  2 avalia nuances contextuais. A Passagem 1 tem precedência absoluta.
+• Criar "camada de segurança base" que não pode ser contornada por contexto.
 
 BENEFÍCIO:
 Elimina a possibilidade de bypass por simples mudança de sessão.
 
-5.2 ESTEGANOGRAFIA AVANÇADA EM IMAGENS (MÉDIO PRAZO)
+5.2 ESTEGANOGRAFIA AVANÇADA E C2PA (MÉDIO PRAZO)
 -----------------------------------------------------
 DESCRIÇÃO:
-Implementar marcas d'água invisíveis (esteganografia digital) que não possam
-ser removidas por ferramentas simples de edição.
+Implementar marcas d'água invisíveis (esteganografia digital) e adotar
+padrões de proveniência de conteúdo (C2PA) para marcar conteúdo gerado por
+IA de forma indelével.
 
-PROBLEMA ATUAL:
-A marca d'água visual atual do Google pode ser removida facilmente usando
-ferramentas básicas como Paint ou seletor de cores.
+VIABILIDADE: Média. Requer cooperação da indústria (navegadores, redes
+sociais) para verificar os padrões, mas o lado da geração é tecnicamente maduro.
 
 SOLUÇÃO PROPOSTA:
-• Utilizar esteganografia em nível de bit (LSB - Least Significant Bit)
-• Marca deve ser:
-  - Invisível ao olho humano
-  - Resistente a compressão de imagem
-  - Detectável apenas por software especializado
-  - Difícil de remover sem destruir a imagem
-
-PADRÕES SUGERIDOS:
-• C2PA (Coalition for Content Provenance and Authenticity)
-• Implementações robustas de watermarking digital
+• Utilizar esteganografia em nível de bit (LSB) para marcação "invisível".
+• Aderência aos padrões de metadados C2PA (Coalition for Content Provenance
+  and Authenticity).
+• Assinatura criptográfica da mídia gerada na origem.
 
 BENEFÍCIO:
-Mesmo que imagem seja gerada, pode ser rastreada e identificada como sintética.
+Mesmo que uma imagem seja gerada, ela pode ser rastreada, e as plataformas
+podem marcá-la automaticamente como "Gerada por IA" ou "Deepfake".
 
 5.3 METADADOS COM PROVENIÊNCIA (MÉDIO PRAZO)
 ---------------------------------------------
@@ -261,20 +285,24 @@ DESCRIÇÃO:
 Para casos de uso legítimo (usuário gerando imagem de si mesmo), implementar
 sistema de verificação que não exponha dados biométricos.
 
+VIABILIDADE: Baixa-Média. Requer hardware especializado no lado do cliente
+ou aplicativos móveis avançados para gerar as provas.
+
 CONCEITO ZKP (Zero-Knowledge Proof):
-• Usuário prova que a foto é dele mesmo
-• Sistema recebe apenas confirmação matemática ("sim" ou "não")
-• Nenhum dado biométrico é transmitido ou armazenado
+• Usuário prova ser quem diz ser via correspondência biométrica local.
+• Sistema recebe apenas uma confirmação matemática ("sim" ou "não") e uma
+  prova criptográfica da autenticação local bem-sucedida.
+• Nenhum dado biométrico é transmitido ou armazenado na nuvem.
 
 IMPLEMENTAÇÃO:
-• Verificação facial local (on-device)
-• Geração de prova criptográfica
-• Validação pelo servidor sem acesso à imagem original
+• Verificação facial local (no dispositivo).
+• Geração de prova criptográfica (ZKP).
+• Validação pelo servidor sem acesso à imagem original.
 
 BENEFÍCIO:
-• Permite uso legítimo sem comprometer privacidade
-• Reduz superfície de ataque (não há dados biométricos no servidor)
-• Compliance com LGPD, GDPR e regulações de privacidade
+• Permite uso legítimo (ex: fotos profissionais) sem comprometer privacidade.
+• Reduz superfície de ataque (não há dados biométricos no servidor).
+• Compliance com LGPD, GDPR e regulações de privacidade.
 
 5.5 SISTEMA DE REPUTAÇÃO E RATE LIMITING (CURTO PRAZO)
 -------------------------------------------------------
